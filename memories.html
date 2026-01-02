@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Memories</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .memories-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .memories-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #444;
+        }
+        
+        .memories-header h1 {
+            color: #fff;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .subject-id {
+            color: #888;
+            font-size: 0.9rem;
+            font-family: monospace;
+            background: #2a2a2a;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+        
+        .back-link {
+            color: #10a37f;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #10a37f;
+        }
+        
+        .memories-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .memory-card {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: border-color 0.2s;
+        }
+        
+        .memory-card:hover {
+            border-color: #666;
+        }
+        
+        .memory-text {
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+        
+        .memory-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .memory-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .memory-kind {
+            background: #10a37f22;
+            color: #10a37f;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .memory-importance {
+            background: #3b82f622;
+            color: #3b82f6;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+        
+        .empty-state h2 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #10a37f;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="memories-container">        
+        <div class="memories-header">
+            <h1>🧠 User Memories</h1>
+            <div class="subject-id" id="subjectId">Loading...</div>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalCount">-</div>
+                <div class="stat-label">Total Memories</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="factCount">-</div>
+                <div class="stat-label">Facts</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="preferenceCount">-</div>
+                <div class="stat-label">Preferences</div>
+            </div>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search memories..." />
+        </div>
+        
+        <div class="memories-list" id="memoriesList">
+            <div class="loading">Loading memories...</div>
+        </div>
+    </div>
+
+    <script>
+        // Get subject ID from URL path /u/:subjectId/memories
+        const pathParts = window.location.pathname.split('/');
+        const subjectIdIndex = pathParts.indexOf('u') + 1;
+        const subjectId = pathParts[subjectIdIndex] || '';
+        
+        document.getElementById('subjectId').textContent = subjectId || 'Unknown';
+        
+        // Set back link to preserve UUID
+        const backLink = document.getElementById('backLink');
+        if (backLink && subjectId) {
+            backLink.href = `/u/${subjectId}`;
+        }
+        
+        let allMemories = [];
+        
+        async function loadMemories() {
+            if (!subjectId) {
+                document.getElementById('memoriesList').innerHTML = `
+                    <div class="empty-state">
+                        <h2>No Subject ID</h2>
+                        <p>Please access this page via /u/{subject_id}/memories</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/memories/list?subject_id=${encodeURIComponent(subjectId)}`);
+                const data = await response.json();
+                
+                allMemories = data.data || [];
+                updateStats(allMemories);
+                renderMemories(allMemories);
+            } catch (error) {
+                console.error('Error loading memories:', error);
+                document.getElementById('memoriesList').innerHTML = `
+                    <div class="empty-state">
+                        <h2>Error Loading Memories</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function updateStats(memories) {
+            document.getElementById('totalCount').textContent = memories.length;
+            document.getElementById('factCount').textContent = memories.filter(m => m.kind === 'fact').length;
+            document.getElementById('preferenceCount').textContent = memories.filter(m => m.kind === 'preference').length;
+        }
+        
+        function renderMemories(memories) {
+            const container = document.getElementById('memoriesList');
+            
+            if (memories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No Memories Yet</h2>
+                        <p>Start chatting to build up memories for this user.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = memories.map(memory => `
+                <div class="memory-card">
+                    <div class="memory-text">${escapeHtml(memory.text)}</div>
+                    <div class="memory-meta">
+                        <span class="memory-kind">${memory.kind || 'fact'}</span>
+                        <span class="memory-importance">Importance: ${memory.importance || 50}</span>
+                        <span>Created: ${formatDate(memory.created_at)}</span>
+                        ${memory.recall_count ? `<span>Recalled: ${memory.recall_count}x</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Unknown';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Search functionality
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim().toLowerCase();
+            
+            searchTimeout = setTimeout(() => {
+                if (!query) {
+                    renderMemories(allMemories);
+                    return;
+                }
+                
+                const filtered = allMemories.filter(m => 
+                    m.text.toLowerCase().includes(query) ||
+                    (m.kind && m.kind.toLowerCase().includes(query))
+                );
+                renderMemories(filtered);
+            }, 300);
+        });
+        
+        // Load memories on page load
+        loadMemories();
+    </script>
+</body>
+</html>

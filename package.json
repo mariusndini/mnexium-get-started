@@ -1,0 +1,12 @@
+{
+  "name": "chatgpt-clone",
+  "version": "1.0.0",
+  "description": "Simple ChatGPT Clone UI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
