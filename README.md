@@ -98,8 +98,8 @@ The `mnx` object in chat requests controls memory behavior:
   model: 'gpt-4o-mini',
   input: 'Hello!',
   mnx: {
-    subject_id: 'user-123',      // Unique user identifier
-    chat_id: 'chat-uuid',        // Conversation identifier
+    subject_id: 'user-123',      // The user
+    chat_id: 'chat-uuid',        // The conversation
     log: true,                   // Log messages to history
     learn: true,                 // Extract and store memories
     recall: true,                // Inject relevant memories
@@ -108,8 +108,11 @@ The `mnx` object in chat requests controls memory behavior:
 }
 ```
 
+> 💡 **Rule of thumb:** `subject_id` = the user, `chat_id` = the conversation.
+
 ## Learn More
+
+📖 **[Read the full tutorial](https://mnexium.com/blogs/hello-mnexium)** — Step-by-step guide to building this example
 
 - [Mnexium Documentation](https://mnexium.com/docs)
 - [API Reference](https://mnexium.com/docs#concepts)
-- [Blogs](https://mnexium.com/blogs)
