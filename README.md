@@ -16,8 +16,9 @@ Mnexium is a **memory layer for LLMs**. It sits between your app and AI provider
 | Folder | Description |
 |--------|-------------|
 | **[Generic-Tests](./Generic-Tests)** | Step-by-step examples for all Mnexium features |
-| **[X-provider](./X-provider)** | Cross-provider memory sharing (OpenAI, Claude, Gemini) |
+| **[Cross-provider](./Cross-provider)** | Cross-provider memory sharing (OpenAI, Claude, Gemini) |
 | **[chatGPTClone](./chatGPTClone)** | Full chat UI example |
+
 
 ## Quick Start
 
@@ -46,7 +47,7 @@ npm install
 node 1.basic_chat.js
 
 # Cross-provider examples
-cd X-provider
+cd Cross-provider
 npm install
 node run-all.js
 ```
